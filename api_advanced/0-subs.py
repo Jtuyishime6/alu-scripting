@@ -1,38 +1,32 @@
 #!/usr/bin/python3
 """
-Module contains function number_of_subscribers
-that queries the Reddit API and returns the
-number of subscribers for a given subreddit.
+Returns the number of subscribers from a subreddit
 """
 import requests
 
 
 def number_of_subscribers(subreddit):
-    """
-    Returns number of subscribers for a subreddit
-    or 0 if invalid.
-    """
-    if subreddit is None or not isinstance(subreddit, str):
-        return 0
-
-    url = "https://www.reddit.com/r/{}/about.json".format(subreddit)
-    headers = {
-        "User-Agent": "ALU-Student-API-Advanced-Task0/1.0"
-    }
+    """ Set a custom header user-agent """
+    headers = {"User-Agent": "ALU-scripting API 0.1"}
+    url = "https://www.reddit.com/r/{}.json".format(subreddit)
 
     try:
-        response = requests.get(
-            url,
-            headers=headers,
-            allow_redirects=False,
-            timeout=5
+        response = requests.get(url, headers=headers,
+                                timeout=30, allow_redirects=False)
+
+    except requests.exceptions.Timeout:
+        return "The request Timed out"
+
+    if response.status_code == 200:
+        json_data = response.json()
+        subscriber_number = (
+            json_data.get("data")
+            .get("children")[0]
+            .get("data")
+            .get("subreddit_subscribers")
         )
-    except Exception:
+        return subscriber_number
+    elif response.status_code == 404:
         return 0
-
-    if response.status_code != 200:
+    else:
         return 0
-
-    data = response.json().get("data", {})
-    return data.get("subscribers", 0)
-
